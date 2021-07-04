@@ -58,7 +58,8 @@ type Address struct {
 func main() {
 	var err error
 	defer eth.Close()
-	geth.GethServer = os.Getenv("GETH")
+	geth.GethServer = os.Getenv("GETH_HTTP_ENDPOINT")
+	port := os.Getenv("GETH_EXPORTER_PORT")
 	watchingAddresses = os.Getenv("ADDRESSES")
 	delay, _ = strconv.Atoi(os.Getenv("DELAY"))
 	if delay == 0 {
@@ -79,7 +80,7 @@ func main() {
 	log.Printf("Geth Exporter running on http://localhost:9090/metrics\n")
 
 	http.HandleFunc("/metrics", MetricsHttp)
-	err = http.ListenAndServe(":9090", nil)
+	err = http.ListenAndServe(fmt.Sprintf(":%s", port), nil)
 	if err != nil {
 		panic(err)
 	}
