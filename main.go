@@ -66,6 +66,7 @@ func main() {
 		delay = 500
 	}
 	log.Printf("Connecting to Ethereum node: %v\n", geth.GethServer)
+
 	eth, err = ethclient.Dial(geth.GethServer)
 	if err != nil {
 		panic(err)
@@ -77,7 +78,7 @@ func main() {
 
 	go Routine()
 
-	log.Printf("Geth Exporter running on http://localhost:9090/metrics\n")
+	log.Printf("Geth Exporter running on http://localhost:%s/metrics\n", port)
 
 	http.HandleFunc("/metrics", MetricsHttp)
 	err = http.ListenAndServe(fmt.Sprintf(":%s", port), nil)
