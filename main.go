@@ -33,20 +33,21 @@ func init() {
 }
 
 type GethInfo struct {
-	GethServer       string
-	ContractsCreated int64
-	TokenTransfers   int64
-	ContractCalls    int64
-	EthTransfers     int64
-	BlockSize        float64
-	LoadTime         float64
-	TotalEth         *big.Int
-	CurrentBlock     *types.Block
-	Sync             *ethereum.SyncProgress
-	LastBlockUpdate  time.Time
-	SugGasPrice      *big.Int
-	PendingTx        uint
-	NetworkId        *big.Int
+	GethServer                       string
+	ContractsCreated                 int64
+	TokenTransfers                   int64
+	ContractCalls                    int64
+	EthTransfers                     int64
+	BlockSize                        float64
+	LoadTime                         float64
+	TotalEth                         *big.Int
+	CurrentBlock                     *types.Block
+	Sync                             *ethereum.SyncProgress
+	LastBlockUpdate                  time.Time
+	ElapsedTimeAfterLastBlockUpdated uint64
+	SugGasPrice                      *big.Int
+	PendingTx                        uint
+	NetworkId                        *big.Int
 }
 
 type Address struct {
@@ -133,6 +134,7 @@ func Routine() {
 		geth.NetworkId, _ = eth.NetworkID(ctx)
 		geth.Sync, _ = eth.SyncProgress(ctx)
 
+		geth.ElapsedTimeAfterLastBlockUpdated = uint64(t1.Unix()) - geth.CurrentBlock.Time()
 		if lastBlock == nil || geth.CurrentBlock.NumberU64() > lastBlock.NumberU64() {
 			log.Printf("Received block #%v with %v transactions (%v)\n", geth.CurrentBlock.NumberU64(), len(geth.CurrentBlock.Transactions()), geth.CurrentBlock.Hash().String())
 			geth.LastBlockUpdate = time.Now()
@@ -187,6 +189,7 @@ func MetricsHttp(w http.ResponseWriter, r *http.Request) {
 	allOut = append(allOut, fmt.Sprintf("geth_token_transfers %v", geth.TokenTransfers))
 	allOut = append(allOut, fmt.Sprintf("geth_eth_transfers %v", geth.EthTransfers))
 	allOut = append(allOut, fmt.Sprintf("geth_load_time %0.4f", geth.LoadTime))
+	allOut = append(allOut, fmt.Sprintf("geth_elapsed_time_last_block_updated %v", geth.ElapsedTimeAfterLastBlockUpdated))
 
 	if geth.Sync != nil {
 		allOut = append(allOut, fmt.Sprintf("geth_known_states %v", int(geth.Sync.KnownStates)))
